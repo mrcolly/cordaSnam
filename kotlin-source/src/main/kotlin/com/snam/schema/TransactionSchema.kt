@@ -2,7 +2,6 @@ package com.snam.schema
 
 import net.corda.core.schemas.MappedSchema
 import net.corda.core.schemas.PersistentState
-import org.bouncycastle.asn1.dvcs.Data
 import java.util.*
 import javax.persistence.Column
 import javax.persistence.Entity

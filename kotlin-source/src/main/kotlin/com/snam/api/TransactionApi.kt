@@ -6,11 +6,9 @@ import com.snam.flow.TransactionFlow.Starter
 import com.snam.schema.TransactionSchemaV1
 
 import com.snam.state.TransactionState
-import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.messaging.CordaRPCOps
-import net.corda.core.messaging.startFlow
 import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.node.services.Vault
@@ -23,6 +21,10 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status.BAD_REQUEST
 import javax.ws.rs.core.Response.Status.CREATED
+import net.corda.core.node.services.vault.QueryCriteria
+
+
+
 
 val SERVICE_NAMES = listOf("Notary", "Network Map Service")
 
@@ -38,7 +40,7 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
     @GET
     @Path("getAll")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getTransactions(@QueryParam("page") page: Int): List<StateAndRef<TransactionState>> {
+    fun getTransactions(@QueryParam("page") page: Int): Response {
 
         var myPage = page
 
@@ -48,11 +50,102 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
 
         // val customSort = SortAttribute.Custom(TransactionSchemaV1.PersistentTransaction::class.java, TransactionSchemaV1.PersistentTransaction::buyerName.toString())
 
-        return rpcOps.vaultQueryBy<TransactionState>(
-                QueryCriteria.VaultQueryCriteria(Vault.StateStatus.UNCONSUMED),
-                PageSpecification(myPage, DEFAULT_PAGE_SIZE),
-                Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
-        ).states
+        val generalCriteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL)
+        val results = builder {
+            val results = rpcOps.vaultQueryBy<TransactionState>(
+                    generalCriteria,
+                    PageSpecification(myPage, DEFAULT_PAGE_SIZE),
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+            ).states
+            return Response.ok(results).build()
+        }
+    }
+
+    @GET
+    @Path("getById")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getTransactionsById(@QueryParam("page") page: Int, @QueryParam("id") idTransaction: String): Response {
+
+        var myPage = page
+
+        if (myPage < 1){
+            myPage = 1
+        }
+
+        if(idTransaction.length < 1){
+            return Response.status(BAD_REQUEST).entity(ResponsePojo("error", "no parameter id")).build()
+        }
+
+        val generalCriteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL)
+        val results = builder {
+            var idEqual = TransactionSchemaV1.PersistentTransaction::codTransazione.equal(idTransaction)
+            val customCriteria = QueryCriteria.VaultCustomQueryCriteria(idEqual)
+            val criteria = generalCriteria.and(customCriteria)
+            val results = rpcOps.vaultQueryBy<TransactionState>(
+                    criteria,
+                    PageSpecification(myPage, DEFAULT_PAGE_SIZE),
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+            ).states
+            return Response.ok(results).build()
+        }
+    }
+
+    @GET
+    @Path("getBySeller")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getTransactionsBySeller(@QueryParam("page") page: Int, @QueryParam("seller") idSeller: String): Response {
+
+        var myPage = page
+
+        if (myPage < 1){
+            myPage = 1
+        }
+
+        if(idSeller.length < 1){
+            return Response.status(BAD_REQUEST).entity(ResponsePojo("error", "no parameter id")).build()
+        }
+
+        val generalCriteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL)
+        val results = builder {
+            var idEqual = TransactionSchemaV1.PersistentTransaction::codSeller.equal(idSeller)
+            val customCriteria = QueryCriteria.VaultCustomQueryCriteria(idEqual)
+            val criteria = generalCriteria.and(customCriteria)
+            val results = rpcOps.vaultQueryBy<TransactionState>(
+                    criteria,
+                    PageSpecification(myPage, DEFAULT_PAGE_SIZE),
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+            ).states
+            return Response.ok(results).build()
+        }
+    }
+
+    @GET
+    @Path("getByBuyer")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getTransactionsByBuyer(@QueryParam("page") page: Int, @QueryParam("buyer") idBuyer: String): Response {
+
+        var myPage = page
+
+        if (myPage < 1){
+            myPage = 1
+        }
+
+        if(idBuyer.length < 1){
+            return Response.status(BAD_REQUEST).entity(ResponsePojo("error", "no parameter id")).build()
+        }
+
+        val generalCriteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL)
+        val results = builder {
+            var idEqual = TransactionSchemaV1.PersistentTransaction::codBuyer.equal(idBuyer)
+            val customCriteria = QueryCriteria.VaultCustomQueryCriteria(idEqual)
+            val criteria = generalCriteria.and(customCriteria)
+            val results = rpcOps.vaultQueryBy<TransactionState>(
+                    criteria,
+                    PageSpecification(myPage, DEFAULT_PAGE_SIZE),
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+            ).states
+            return Response.ok(results).build()
+        }
     }
 
     /**
