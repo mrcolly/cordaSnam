@@ -7,7 +7,7 @@ import java.util.*
 data class TransactionPojo(
         val buyer: String = "",
         val seller: String = "",
-        val codTransazione: String = "",
+        val externalId: String = "",
         val codBuyer: String = "",
         val codSeller: String = "",
         val data: Date = Date(),

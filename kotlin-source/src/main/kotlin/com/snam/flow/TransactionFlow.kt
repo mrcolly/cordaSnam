@@ -6,6 +6,7 @@ import com.snam.contract.TransactionsContract
 import com.snam.contract.TransactionsContract.Companion.TRANSACTION_CONTRACT_ID
 import com.snam.state.TransactionState
 import net.corda.core.contracts.Command
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.contracts.requireThat
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
@@ -64,14 +65,14 @@ object TransactionFlow {
             val transactionState = TransactionState(buyer,
                     seller,
                     serviceHub.myInfo.legalIdentities.first(),
-                    properties.codTransazione,
                     properties.codBuyer,
                     properties.codSeller,
                     properties.data,
                     properties.energia,
                     properties.pricePerUnit,
                     properties.idVendita,
-                    properties.idAcquisto)
+                    properties.idAcquisto,
+                    UniqueIdentifier(properties.externalId, UUID.randomUUID()))
             val txCommand = Command(TransactionsContract.Commands.Create(), transactionState.participants.map { it.owningKey })
             val txBuilder = TransactionBuilder(notary)
                     .addOutputState(transactionState, TRANSACTION_CONTRACT_ID)

@@ -27,9 +27,6 @@ object TransactionSchemaV1 : MappedSchema(
             @Column(name = "snam")
             var snamName: String,
 
-            @Column(name = "codTransazione")
-            var codTransazione: String,
-
             @Column(name = "codBuyer")
             var codBuyer: String,
 
@@ -57,6 +54,6 @@ object TransactionSchemaV1 : MappedSchema(
     ) : PersistentState() {
         // Default constructor required by hibernate.
         //constructor(): this("", "", "", , UUID.randomUUID())
-        constructor() : this("","","","", "", "", Date(), 0.0 , 0.0, "", "", UUID.randomUUID())
+        constructor() : this("","","", "", "", Date(), 0.0 , 0.0, "", "", UUID.randomUUID())
     }
 }

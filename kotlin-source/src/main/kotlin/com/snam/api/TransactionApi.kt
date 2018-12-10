@@ -22,8 +22,7 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status.BAD_REQUEST
 import javax.ws.rs.core.Response.Status.CREATED
 import net.corda.core.node.services.vault.QueryCriteria
-
-
+import java.text.SimpleDateFormat
 
 
 val SERVICE_NAMES = listOf("Notary", "Network Map Service")
@@ -55,12 +54,16 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
             val results = rpcOps.vaultQueryBy<TransactionState>(
                     generalCriteria,
                     PageSpecification(myPage, DEFAULT_PAGE_SIZE),
-                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME), Sort.Direction.DESC)))
+                    //Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+                    //Sort(setOf(Sort.SortColumn(SortAttribute.Custom(TransactionSchemaV1.PersistentTransaction::class.java, "data", Sort.Direction.DESC)))
             ).states
             return Response.ok(results).build()
         }
     }
 
+
+/*
     @GET
     @Path("getById")
     @Produces(MediaType.APPLICATION_JSON)
@@ -76,15 +79,15 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
             return Response.status(BAD_REQUEST).entity(ResponsePojo("error", "no parameter id")).build()
         }
 
+
         val generalCriteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL)
         val results = builder {
-            var idEqual = TransactionSchemaV1.PersistentTransaction::codTransazione.equal(idTransaction)
-            val customCriteria = QueryCriteria.VaultCustomQueryCriteria(idEqual)
+            val customCriteria = QueryCriteria.LinearStateQueryCriteria(externalId = listOf(idTransaction))
             val criteria = generalCriteria.and(customCriteria)
             val results = rpcOps.vaultQueryBy<TransactionState>(
                     criteria,
                     PageSpecification(myPage, DEFAULT_PAGE_SIZE),
-                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME), Sort.Direction.DESC)))
             ).states
             return Response.ok(results).build()
         }
@@ -113,7 +116,7 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
             val results = rpcOps.vaultQueryBy<TransactionState>(
                     criteria,
                     PageSpecification(myPage, DEFAULT_PAGE_SIZE),
-                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME), Sort.Direction.DESC)))
             ).states
             return Response.ok(results).build()
         }
@@ -142,10 +145,100 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
             val results = rpcOps.vaultQueryBy<TransactionState>(
                     criteria,
                     PageSpecification(myPage, DEFAULT_PAGE_SIZE),
-                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.CommonStateAttribute.STATE_REF_TXN_ID), Sort.Direction.DESC)))
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME), Sort.Direction.DESC)))
             ).states
             return Response.ok(results).build()
         }
+    }
+
+
+    @GET
+    @Path("getByDate")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getTransactionsByDate(@QueryParam("page") page: Int, @QueryParam("from") from: String, @QueryParam("to") to: String): Response {
+
+        val format = SimpleDateFormat("yyyy-MM-dd")
+
+        var myFrom = format.parse(from)
+        var myTo = format.parse(to)
+
+        var myPage = page
+
+        if (myPage < 1) {
+            myPage = 1
+        }
+
+        val generalCriteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL)
+        val results = builder {
+            var dateBetween = TransactionSchemaV1.PersistentTransaction::data.between(myFrom, myTo)
+            val customCriteria = QueryCriteria.VaultCustomQueryCriteria(dateBetween)
+            val criteria = generalCriteria.and(customCriteria)
+            val results = rpcOps.vaultQueryBy<TransactionState>(
+                    criteria,
+                    PageSpecification(myPage, DEFAULT_PAGE_SIZE),
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME), Sort.Direction.DESC)))
+            ).states
+            return Response.ok(results).build()
+        }
+    }
+*/
+
+    @GET
+    @Path("get")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getTransactionsByParams(@DefaultValue("1") @QueryParam("page") page: Int,
+                                @DefaultValue("") @QueryParam("id") idTransaction: String,
+                                @DefaultValue("") @QueryParam("buyer") idBuyer: String,
+                                @DefaultValue("") @QueryParam("seller") idSeller: String,
+                                @DefaultValue("1990-01-01") @QueryParam("from") from: String,
+                                @DefaultValue("2050-12-31") @QueryParam("to") to: String): Response {
+
+        var myPage = page
+
+        if (myPage < 1){
+            myPage = 1
+        }
+
+        var criteria : QueryCriteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL)
+        val results = builder {
+
+
+            if(idTransaction.length > 0){
+                val customCriteria = QueryCriteria.LinearStateQueryCriteria(externalId = listOf(idTransaction))
+                criteria = criteria.and(customCriteria)
+            }
+
+            if(idSeller.length > 0){
+                val idEqual = TransactionSchemaV1.PersistentTransaction::codSeller.equal(idSeller)
+                val customCriteria = QueryCriteria.VaultCustomQueryCriteria(idEqual)
+                criteria = criteria.and(customCriteria)
+            }
+
+            if(idBuyer.length > 0){
+                val idEqual = TransactionSchemaV1.PersistentTransaction::codBuyer.equal(idBuyer)
+                val customCriteria = QueryCriteria.VaultCustomQueryCriteria(idEqual)
+                criteria = criteria.and(customCriteria)
+            }
+
+
+            if(from.length > 0 && to.length > 0){
+                val format = SimpleDateFormat("yyyy-MM-dd")
+                var myFrom = format.parse(from)
+                var myTo = format.parse(to)
+                var dateBetween = TransactionSchemaV1.PersistentTransaction::data.between(myFrom, myTo)
+                val customCriteria = QueryCriteria.VaultCustomQueryCriteria(dateBetween)
+                criteria = criteria.and(customCriteria)
+            }
+
+            val results = rpcOps.vaultQueryBy<TransactionState>(
+                    criteria,
+                    PageSpecification(myPage, DEFAULT_PAGE_SIZE),
+                    Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME), Sort.Direction.DESC)))
+             ).states
+
+            return Response.ok(results).build()
+        }
+
     }
 
     /**
