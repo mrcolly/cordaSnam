@@ -242,7 +242,7 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
     }
 
     /**
-     * Initiates a flow to agree an IOU between two parties.
+     * prova
      *
      * Once the flow finishes it will have written the IOU to ledger. Both the lender and the borrower will be able to
      * see it when calling /api/example/ious on their respective nodes.
