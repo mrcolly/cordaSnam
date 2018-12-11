@@ -262,12 +262,13 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
             val buyer : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse(req.buyer))!!
             val seller : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse(req.seller))!!
 
+            /*
             if(buyer == null || seller == null)
             {
                 val resp = ResponsePojo("ERROR", "Cannot find buyer or seller")
                 return Response.status(BAD_REQUEST).entity(resp).build()
             }
-
+            */
 
             val signedTx = rpcOps.startTrackedFlow(::Starter,
                     buyer,

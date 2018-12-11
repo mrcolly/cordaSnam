@@ -11,18 +11,18 @@ import net.corda.core.schemas.QueryableState
 import java.util.*
 
 
-data class TransactionState(val buyer: Party,
-                            val seller: Party,
-                            val snam: Party,
-                            val codBuyer: String,
-                            val codSeller: String,
-                            val data: Date,
-                            val energia: Double,
-                            val pricePerUnit: Double,
-                            val idVendita: String,
-                            val idAcquisto: String,
-                            override val linearId: UniqueIdentifier = UniqueIdentifier()):
-        LinearState, QueryableState {
+data class TransactionState(
+        val buyer: Party,
+        val seller: Party,
+        val snam: Party,
+        val codBuyer: String,
+        val codSeller: String,
+        val data: Date,
+        val energia: Double,
+        val pricePerUnit: Double,
+        val idVendita: String,
+        val idAcquisto: String,
+        override val linearId: UniqueIdentifier = UniqueIdentifier()): LinearState, QueryableState {
 
     override val participants: List<AbstractParty> get() = listOf(buyer, seller, snam)
 
