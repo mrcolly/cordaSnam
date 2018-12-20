@@ -261,7 +261,7 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
         try {
             val buyer : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse(req.buyer))!!
             val seller : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse(req.seller))!!
-            val snam : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse("O=Snam,L=Milan,C=IT"))!!
+            val snam : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse("O=Sman,L=Milan,C=IT"))!!
 
             val signedTx = rpcOps.startTrackedFlow(::Starter,
                     buyer,
