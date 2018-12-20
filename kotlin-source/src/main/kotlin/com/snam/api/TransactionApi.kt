@@ -2,6 +2,7 @@ package com.snam.api
 
 import com.snam.POJO.ResponsePojo
 import com.snam.POJO.TransactionPojo
+import com.snam.flow.TransactionFlow
 import com.snam.flow.TransactionFlow.Starter
 import com.snam.schema.TransactionSchemaV1
 
@@ -25,7 +26,7 @@ import net.corda.core.node.services.vault.QueryCriteria
 import java.text.SimpleDateFormat
 
 
-val SERVICE_NAMES = listOf("Notary", "Network Map Service")
+//val SERVICE_NAMES = listOf("Notary", "Network Map Service")
 
 
 @Path("transaction")
@@ -193,6 +194,8 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
                                 @DefaultValue("1990-01-01") @QueryParam("from") from: String,
                                 @DefaultValue("2050-12-31") @QueryParam("to") to: String): Response {
 
+
+        try{
         var myPage = page
 
         if (myPage < 1){
@@ -238,6 +241,12 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
 
             return Response.ok(results).build()
         }
+    }catch (ex: Exception){
+        val msg = ex.message
+        logger.error(ex.message, ex)
+        val resp = ResponsePojo("ERROR", msg!!)
+        return Response.status(BAD_REQUEST).entity(resp).build()
+    }
 
     }
 
@@ -263,7 +272,7 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
             val seller : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse(req.seller))!!
             val snam : Party = rpcOps.wellKnownPartyFromX500Name(CordaX500Name.parse("O=Sman,L=Milan,C=IT"))!!
 
-            val signedTx = rpcOps.startTrackedFlow(::Starter,
+            val signedTx = rpcOps.startTrackedFlow(TransactionFlow::Starter,
                     buyer,
                     seller,
                     snam,

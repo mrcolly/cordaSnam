@@ -2,6 +2,7 @@ package com.plugin
 
 
 import com.example.api.ExampleApi
+import com.snam.api.ProposalApi
 import com.snam.api.TransactionApi
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.webserver.services.WebServerPluginRegistry
@@ -11,7 +12,7 @@ class FullPlugin : WebServerPluginRegistry {
     /**
      * A list of classes that expose web APIs.
      */
-    override val webApis = listOf(Function(::ExampleApi), Function(::TransactionApi))
+    override val webApis = listOf(Function(::ExampleApi), Function(::TransactionApi), Function(::ProposalApi))
 
     /**
      * A list of directories in the resources directory that will be served by Jetty under /web.
