@@ -15,13 +15,10 @@ data class TransactionState(
         val buyer: Party,
         val seller: Party,
         val snam: Party,
-        val codBuyer: String,
-        val codSeller: String,
         val data: Date,
         val energia: Double,
         val pricePerUnit: Double,
-        val idVendita: String,
-        val idAcquisto: String,
+        val idProposal: String,
         override val linearId: UniqueIdentifier = UniqueIdentifier()): LinearState, QueryableState {
 
     override val participants: List<AbstractParty> get() = listOf(buyer, seller, snam)
@@ -32,13 +29,10 @@ data class TransactionState(
                     this.buyer.name.toString(),
                     this.seller.name.toString(),
                     this.snam.name.toString(),
-                    this.codBuyer,
-                    this.codSeller,
                     this.data,
                     this.energia,
                     this.pricePerUnit,
-                    this.idVendita,
-                    this.idAcquisto,
+                    this.idProposal,
                     this.linearId.id
             )
             else -> throw IllegalArgumentException("Unrecognised schema $schema")

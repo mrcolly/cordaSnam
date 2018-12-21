@@ -27,12 +27,6 @@ object TransactionSchemaV1 : MappedSchema(
             @Column(name = "snam")
             var snamName: String,
 
-            @Column(name = "codBuyer")
-            var codBuyer: String,
-
-            @Column(name = "codSeller")
-            var codSeller: String,
-
             @Column(name = "data")
             var data: Date,
 
@@ -42,11 +36,8 @@ object TransactionSchemaV1 : MappedSchema(
             @Column(name = "pricePerUnit")
             var pricePerUnit: Double,
 
-            @Column(name = "idVendita")
-            var idVendita: String,
-
-            @Column(name = "idAcquisto")
-            var idAcquisto: String,
+            @Column(name = "idProposal")
+            var idProposal: String,
 
             @Column(name = "linear_id")
             var linearId: UUID
@@ -54,6 +45,6 @@ object TransactionSchemaV1 : MappedSchema(
     ) : PersistentState() {
         // Default constructor required by hibernate.
         //constructor(): this("", "", "", , UUID.randomUUID())
-        constructor() : this("","","", "", "", Date(), 0.0 , 0.0, "", "", UUID.randomUUID())
+        constructor() : this("","","",   Date(), 0.0 , 0.0,  "", UUID.randomUUID())
     }
 }

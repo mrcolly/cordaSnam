@@ -72,13 +72,10 @@ object TransactionFlow {
             val transactionState = TransactionState(buyer,
                     seller,
                     snam,
-                    properties.codBuyer,
-                    properties.codSeller,
                     properties.data,
                     properties.energia,
                     properties.pricePerUnit,
-                    properties.idVendita,
-                    properties.idAcquisto,
+                    properties.idProposal,
                     UniqueIdentifier(properties.externalId, UUID.randomUUID()))
             val txCommand = Command(TransactionsContract.Commands.Create(), transactionState.participants.map { it.owningKey })
             val txBuilder = TransactionBuilder(notary)
@@ -205,32 +202,28 @@ object TransactionFlow {
             val proposalStateRef = proposalStates.get(0)
             val proposalState = proposalStateRef.state.data
 
-            var idAcquisto = ""
-            var idVendita = ""
             var buyer: Party? = null
             var seller: Party? = null
 
             if(proposalState.type === 'A') {
                 buyer = proposalState.issuer
                 seller = proposalState.counterpart
-                idAcquisto = proposalState.linearId.id.toString()
+
             }else if(proposalState.type === 'V') {
                 buyer = proposalState.counterpart
                 seller = proposalState.issuer
-                idVendita = proposalState.linearId.id.toString()
             }
+
+            val idProposal = proposalState.linearId.id.toString()
 
 
             val transactionState = TransactionState(buyer!!,
                     seller!!,
                     proposalState.snam,
-                    "",
-                    "",
                     proposalState.data,
                     proposalState.energia,
                     proposalState.pricePerUnit,
-                    idVendita,
-                    idAcquisto,
+                    idProposal,
                     UniqueIdentifier(id = UUID.randomUUID()))
 
 
@@ -239,10 +232,6 @@ object TransactionFlow {
                     .addInputState(proposalStateRef)
                     .addOutputState(transactionState, TRANSACTION_CONTRACT_ID)
                     .addCommand(proposalCommand)
-
-            println("PROPOSAL commands"+ proposalBuilder.commands())
-            println("PROPOSAL inputs"+ proposalBuilder.inputStates())
-            println("PROPOSAL outputs"+ proposalBuilder.outputStates())
 
 
             // Stage 2.

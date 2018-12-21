@@ -16,11 +16,13 @@ class ProposalContract : Contract {
     }
 
     override fun verify(tx: LedgerTransaction) {
-        val command = tx.commands.requireSingleCommand<Commands>()
-        val setOfSigners = command.signers.toSet()
-        when (command.value) {
-            is Commands.Create -> verifyCreate(tx, setOfSigners)
-            else -> throw IllegalArgumentException("Unrecognised command.")
+        val commands = tx.commandsOfType<Commands>()
+        for(command in commands) {
+            val setOfSigners = command.signers.toSet()
+            when (command.value) {
+                is Commands.Create -> verifyCreate(tx, setOfSigners)
+                else -> throw IllegalArgumentException("Unrecognised command.")
+            }
         }
     }
 
@@ -30,9 +32,6 @@ class ProposalContract : Contract {
     }
 
     private fun verifyCreate(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
-
-        println("started verifyCreate")
-        println(tx.toString())
 
         "No inputs should be consumed when creating a transaction." using (tx.inputStates.isEmpty())
         "Only one transaction state should be created." using (tx.outputStates.size == 1)

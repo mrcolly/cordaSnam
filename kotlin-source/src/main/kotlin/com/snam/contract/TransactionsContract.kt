@@ -15,7 +15,6 @@ class TransactionsContract : Contract {
     }
 
     override fun verify(tx: LedgerTransaction) {
-        println("transaction verify "+tx.toString())
         val commands = tx.commandsOfType<Commands>()
         for(command in commands){
             val setOfSigners = command.signers.toSet()
@@ -44,10 +43,6 @@ class TransactionsContract : Contract {
     }
 
     private fun verifyIssue(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
-
-        println("started verifyIssue")
-        println(tx.toString())
-
         //proposal
         "there must be only one input" using (tx.inputStates.size == 1)
         val proposal = tx.inputsOfType<ProposalState>().single()
@@ -64,8 +59,9 @@ class TransactionsContract : Contract {
         //proposal and transaction
         "issuer must be seller of buyer" using (proposal.issuer == transaction.seller || proposal.issuer == transaction.buyer)
         "counterpart must be seller of buyer" using (proposal.counterpart == transaction.seller || proposal.counterpart == transaction.buyer)
+        ""+proposal.data+" is not valid" using (transaction.data < proposal.validity)
         "energy must be equal" using (proposal.energia == transaction.energia)
         "priceperunit must be equal" using (proposal.pricePerUnit == transaction.pricePerUnit)
-        "linearId must be acquisto o vendita" using (proposal.linearId.id.toString() == transaction.idAcquisto || proposal.linearId.id.toString() == transaction.idVendita)
+        "linearId must be idProposal" using (proposal.linearId.id.toString() == transaction.idProposal)
     }
 }

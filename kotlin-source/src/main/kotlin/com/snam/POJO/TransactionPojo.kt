@@ -8,11 +8,8 @@ data class TransactionPojo(
         val buyer: String = "",
         val seller: String = "",
         val externalId: String = "",
-        val codBuyer: String = "",
-        val codSeller: String = "",
         val data: Date = Date(),
         val energia: Double = 0.0,
         val pricePerUnit: Double = 0.0,
-        val idVendita: String = "",
-        val idAcquisto: String = ""
+        val idProposal: String = ""
         )
