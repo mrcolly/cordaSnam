@@ -25,11 +25,15 @@ class ProposalContract : Contract {
     }
 
     interface Commands : CommandData {
-        class Create : TypeOnlyCommandData(), Commands
+        class Create : Commands
         //class Settle : TypeOnlyCommandData(), Commands
     }
 
     private fun verifyCreate(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
+
+        println("started verifyCreate")
+        println(tx.toString())
+
         "No inputs should be consumed when creating a transaction." using (tx.inputStates.isEmpty())
         "Only one transaction state should be created." using (tx.outputStates.size == 1)
         val proposal = tx.outputsOfType<ProposalState>().single()

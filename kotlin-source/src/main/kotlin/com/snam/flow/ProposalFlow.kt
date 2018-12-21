@@ -72,6 +72,7 @@ object ProposalFlow {
                     properties.validity,
                     properties.type,
                     UniqueIdentifier(id = UUID.randomUUID()))
+
             val txCommand = Command(ProposalContract.Commands.Create(), proposalState.participants.map { it.owningKey })
             val txBuilder = TransactionBuilder(notary)
                     .addOutputState(proposalState, PROPOSAL_CONTRACT_ID)
