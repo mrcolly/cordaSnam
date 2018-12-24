@@ -89,7 +89,7 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
                 val format = SimpleDateFormat("yyyy-MM-dd")
                 var myFrom = format.parse(from)
                 var myTo = format.parse(to)
-                var dateBetween = TransactionSchemaV1.PersistentTransaction::data.between(myFrom, myTo)
+                var dateBetween = TransactionSchemaV1.PersistentTransaction::data.between(myFrom.toInstant(), myTo.toInstant())
                 val customCriteria = QueryCriteria.VaultCustomQueryCriteria(dateBetween, myStatus)
                 criteria = criteria.and(customCriteria)
             }

@@ -21,19 +21,22 @@ class ProposalContract : Contract {
             val setOfSigners = command.signers.toSet()
             when (command.value) {
                 is Commands.Create -> verifyCreate(tx, setOfSigners)
+                is Commands.End -> verifyEnd(tx, setOfSigners)
                 else -> throw IllegalArgumentException("Unrecognised command.")
             }
         }
     }
 
     interface Commands : CommandData {
-        class Create : Commands
+        class Create : Commands, TypeOnlyCommandData()
+        class End : Commands, TypeOnlyCommandData()
         //class Settle : TypeOnlyCommandData(), Commands
     }
 
     private fun verifyCreate(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
 
         "No inputs should be consumed when creating a transaction." using (tx.inputStates.isEmpty())
+
         "Only one transaction state should be created." using (tx.outputStates.size == 1)
         val proposal = tx.outputsOfType<ProposalState>().single()
         "issuer and counterpart cannot be the same" using (proposal.issuer != proposal.counterpart)
@@ -41,6 +44,13 @@ class ProposalContract : Contract {
         "pricePerUnit must be grather than 0" using (proposal.pricePerUnit > 0)
         "validity must be grather than date" using (proposal.validity > proposal.data)
         "proposal type must be 'A' or 'V'" using (proposal.type === 'V' || proposal.type === 'A')
+        "All of the participants must be signers." using (signers.containsAll(proposal.participants.map { it.owningKey }))
+    }
+
+    private fun verifyEnd(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
+        "one input when ending a proposal." using (tx.inputStates.size === 1)
+        "no proposal state should be created." using (tx.outputStates.isEmpty())
+        val proposal = tx.inputsOfType<ProposalState>().single()
         "All of the participants must be signers." using (signers.containsAll(proposal.participants.map { it.owningKey }))
     }
 }

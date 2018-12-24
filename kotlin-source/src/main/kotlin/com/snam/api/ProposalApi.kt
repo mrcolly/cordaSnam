@@ -36,6 +36,72 @@ class ProposalApi(private val rpcOps: CordaRPCOps) {
 
 
     @GET
+    @Path("get")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getAllProposalsByParams(@DefaultValue("1") @QueryParam("page") page: Int,
+                               @DefaultValue("") @QueryParam("id") idProposal: String,
+                               @DefaultValue("") @QueryParam("counterpart") counterpart: String,
+                               @DefaultValue("1990-01-01") @QueryParam("from") from: String,
+                               @DefaultValue("2050-12-31") @QueryParam("to") to: String,
+                               @DefaultValue("unconsumed") @QueryParam("status") status: String): Response {
+
+        try{
+            var myPage = page
+
+            if (myPage < 1){
+                myPage = 1
+            }
+
+            var myStatus = Vault.StateStatus.UNCONSUMED
+
+            when(status){
+                "consumed" -> myStatus = Vault.StateStatus.CONSUMED
+                "all" -> myStatus = Vault.StateStatus.ALL
+            }
+
+            val results = builder {
+
+                var criteria : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
+
+
+                if(idProposal.length > 0){
+                    val customCriteria = QueryCriteria.LinearStateQueryCriteria( uuid = listOf(UUID.fromString(idProposal)), status = myStatus)
+                    criteria = criteria.and(customCriteria)
+                }
+
+                if(counterpart.length > 0){
+                    val idEqual = ProposalSchemaV1.PersistentProposal::counterpart.equal(counterpart)
+                    val customCriteria = QueryCriteria.VaultCustomQueryCriteria(idEqual, myStatus)
+                    criteria = criteria.and(customCriteria)
+                }
+
+                if(from.length > 0 && to.length > 0){
+                    val format = SimpleDateFormat("yyyy-MM-dd")
+                    var myFrom = format.parse(from)
+                    var myTo = format.parse(to)
+                    var dateBetween = ProposalSchemaV1.PersistentProposal::data.between(myFrom.toInstant(), myTo.toInstant())
+                    val customCriteria = QueryCriteria.VaultCustomQueryCriteria(dateBetween, myStatus)
+                    criteria = criteria.and(customCriteria)
+                }
+
+                val results = rpcOps.vaultQueryBy<ProposalState>(
+                        criteria,
+                        PageSpecification(myPage, DEFAULT_PAGE_SIZE),
+                        Sort(setOf(Sort.SortColumn(SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME), Sort.Direction.DESC)))
+                ).states
+
+                return Response.ok(results).build()
+            }
+        }catch (ex: Exception){
+            val msg = ex.message
+            logger.error(ex.message, ex)
+            val resp = ResponsePojo("ERROR", msg!!)
+            return Response.status(BAD_REQUEST).entity(resp).build()
+        }
+    }
+
+
+    @GET
     @Path("get/myProposals")
     @Produces(MediaType.APPLICATION_JSON)
     fun getMyProposalsByParams(@DefaultValue("1") @QueryParam("page") page: Int,
@@ -82,7 +148,7 @@ class ProposalApi(private val rpcOps: CordaRPCOps) {
                     val format = SimpleDateFormat("yyyy-MM-dd")
                     var myFrom = format.parse(from)
                     var myTo = format.parse(to)
-                    var dateBetween = ProposalSchemaV1.PersistentProposal::data.between(myFrom, myTo)
+                    var dateBetween = ProposalSchemaV1.PersistentProposal::data.between(myFrom.toInstant(), myTo.toInstant())
                     val customCriteria = QueryCriteria.VaultCustomQueryCriteria(dateBetween, myStatus)
                     criteria = criteria.and(customCriteria)
                 }
@@ -151,7 +217,7 @@ class ProposalApi(private val rpcOps: CordaRPCOps) {
                     val format = SimpleDateFormat("yyyy-MM-dd")
                     var myFrom = format.parse(from)
                     var myTo = format.parse(to)
-                    var dateBetween = ProposalSchemaV1.PersistentProposal::data.between(myFrom, myTo)
+                    var dateBetween = ProposalSchemaV1.PersistentProposal::data.between(myFrom.toInstant(), myTo.toInstant())
                     val customCriteria = QueryCriteria.VaultCustomQueryCriteria(dateBetween, myStatus)
                     criteria = criteria.and(customCriteria)
                 }

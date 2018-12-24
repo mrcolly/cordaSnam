@@ -5,6 +5,7 @@ import com.snam.state.TransactionState
 import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 import java.security.PublicKey
+import java.time.Instant
 import java.util.*
 
 
@@ -36,7 +37,7 @@ class TransactionsContract : Contract {
         "Only one transaction state should be created." using (tx.outputStates.size == 1)
         val transaction = tx.outputsOfType<TransactionState>().single()
         "seller and buyer cannot be the same" using (transaction.seller != transaction.buyer)
-        "date cannot be in the future" using (transaction.data < Date())
+        "date cannot be in the future" using (transaction.data < Instant.now())
         "energy must be grather than 0" using (transaction.energia > 0)
         "pricePerUnit must be grather than 0" using (transaction.pricePerUnit > 0)
         "All of the participants must be signers." using (signers.containsAll(transaction.participants.map { it.owningKey }))

@@ -2,6 +2,7 @@ package com.snam.schema
 
 import net.corda.core.schemas.MappedSchema
 import net.corda.core.schemas.PersistentState
+import java.time.Instant
 import java.util.*
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -28,7 +29,7 @@ object TransactionSchemaV1 : MappedSchema(
             var snamName: String,
 
             @Column(name = "data")
-            var data: Date,
+            var data: Instant,
 
             @Column(name = "energia")
             var energia: Double,
@@ -45,6 +46,6 @@ object TransactionSchemaV1 : MappedSchema(
     ) : PersistentState() {
         // Default constructor required by hibernate.
         //constructor(): this("", "", "", , UUID.randomUUID())
-        constructor() : this("","","",   Date(), 0.0 , 0.0,  "", UUID.randomUUID())
+        constructor() : this("","","",   Instant.now(), 0.0 , 0.0,  "", UUID.randomUUID())
     }
 }

@@ -8,6 +8,7 @@ import net.corda.core.identity.Party
 import net.corda.core.schemas.MappedSchema
 import net.corda.core.schemas.PersistentState
 import net.corda.core.schemas.QueryableState
+import java.time.Instant
 import java.util.*
 
 
@@ -15,7 +16,7 @@ data class TransactionState(
         val buyer: Party,
         val seller: Party,
         val snam: Party,
-        val data: Date,
+        val data: Instant,
         val energia: Double,
         val pricePerUnit: Double,
         val idProposal: String,
