@@ -76,6 +76,7 @@ object TransactionFlow {
                     properties.data,
                     properties.energia,
                     properties.pricePerUnit,
+                    properties.energia * properties.pricePerUnit,
                     properties.idProposal,
                     UniqueIdentifier(properties.externalId, UUID.randomUUID()))
             val txCommand = Command(TransactionsContract.Commands.Create(), transactionState.participants.map { it.owningKey })
@@ -185,6 +186,7 @@ object TransactionFlow {
             // Obtain a reference to the notary we want to use.
             val notary = serviceHub.networkMapCache.notaryIdentities[0]
 
+
             // Stage 1.
             progressTracker.currentStep = GENERATING_TRANSACTION
             // Generate an unsigned transaction.
@@ -202,6 +204,12 @@ object TransactionFlow {
 
             val proposalStateRef = proposalStates.get(0)
             val proposalState = proposalStateRef.state.data
+
+            if(proposalState.type == 'V'){
+                if(!ProposalFlow.checkBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, proposalState.energia)){
+                    throw FlowException("not enough MWH balance")
+                }
+            }
 
             var buyer: Party? = null
             var seller: Party? = null
@@ -224,6 +232,7 @@ object TransactionFlow {
                     proposalState.data,
                     proposalState.energia,
                     proposalState.pricePerUnit,
+                    proposalState.energia * proposalState.pricePerUnit,
                     idProposal,
                     UniqueIdentifier(id = UUID.randomUUID()))
 
@@ -268,6 +277,11 @@ object TransactionFlow {
             // Stage 5.
             progressTracker.currentStep = FINALISING_TRANSACTION
             // Notarise and record the transaction in both parties' vaults.
+
+            if(proposalState.type == 'V'){
+                ProposalFlow.updateBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, -proposalState.energia)
+            }
+
             return subFlow(FinalityFlow(fullySignedTx, FINALISING_TRANSACTION.childProgressTracker()))
         }
     }

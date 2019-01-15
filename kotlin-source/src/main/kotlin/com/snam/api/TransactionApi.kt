@@ -2,6 +2,7 @@ package com.snam.api
 
 import com.snam.POJO.ResponsePojo
 import com.snam.POJO.TransactionPojo
+import com.snam.POJO.balancePojo
 import com.snam.flow.TransactionFlow
 import com.snam.schema.TransactionSchemaV1
 
@@ -126,25 +127,69 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
                 "all" -> myStatus = Vault.StateStatus.ALL
             }
 
-            var criteriaV : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
-            var criteriaA : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
+            if(myLegalName.organisation != "Sman"){
+                var criteriaV : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
+                var criteriaA : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
 
-            val results = builder {
-                val sellerMe = TransactionSchemaV1.PersistentTransaction::sellerName.equal(myLegalName.toString())
-                val sellerCriteria = QueryCriteria.VaultCustomQueryCriteria(sellerMe, myStatus)
-                criteriaV = criteriaV.and(sellerCriteria)
+                var totalSold = builder {
+                    val sellerMe = TransactionSchemaV1.PersistentTransaction::sellerName.equal(myLegalName.toString())
+                    val sellerCriteria = QueryCriteria.VaultCustomQueryCriteria(sellerMe, myStatus)
+                    criteriaV = criteriaV.and(sellerCriteria)
 
-                val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum()
-                val sumCriteria = QueryCriteria.VaultCustomQueryCriteria(sum, myStatus)
-                criteriaV = criteriaV.and(sumCriteria)
+                    //val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum(groupByColumns = listOf(TransactionSchemaV1.PersistentTransaction::sellerName))
+                    val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum()
+                    val sumCriteria = QueryCriteria.VaultCustomQueryCriteria(sum, myStatus)
+                    criteriaV = criteriaV.and(sumCriteria)
 
-                val buyerMe = TransactionSchemaV1.PersistentTransaction::buyerName.equal(myLegalName.toString())
-                val buyerCriteria = QueryCriteria.VaultCustomQueryCriteria(buyerMe, myStatus)
-                criteriaV = criteriaV.and(buyerCriteria)
+                    rpcOps.vaultQueryBy<TransactionState>(criteriaV).otherResults.get(0)
+                }
 
-                val result = rpcOps.vaultQueryBy<TransactionState>(criteriaV.and(criteriaA))
-                return Response.ok(result).build()
+                var totalBought = builder {
+                    val buyerMe = TransactionSchemaV1.PersistentTransaction::buyerName.equal(myLegalName.toString())
+                    val buyerCriteria = QueryCriteria.VaultCustomQueryCriteria(buyerMe, myStatus)
+                    criteriaA = criteriaA.and(buyerCriteria)
+
+                    //val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum(groupByColumns = listOf(TransactionSchemaV1.PersistentTransaction::sellerName))
+                    val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum()
+                    val sumCriteria = QueryCriteria.VaultCustomQueryCriteria(sum, myStatus)
+                    criteriaA = criteriaA.and(sumCriteria)
+
+                    rpcOps.vaultQueryBy<TransactionState>(criteriaA).otherResults.get(0)
+                }
+
+
+                if(totalSold is Double && totalBought is Double){
+                    return Response.ok(balancePojo(totalSold, totalBought)).build()
+                }else if(totalSold is Double){
+                    return Response.ok(balancePojo(totalSold, 0.0)).build()
+                }else if(totalBought is Double){
+                    return Response.ok(balancePojo(0.0, totalBought)).build()
+                }else{
+                    return Response.ok(balancePojo(0.0, 0.0)).build()
+                }
+            }else{
+
+                var criteria : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
+
+                var totalSold = builder {
+
+
+                    //val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum(groupByColumns = listOf(TransactionSchemaV1.PersistentTransaction::sellerName))
+                    val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum()
+                    val sumCriteria = QueryCriteria.VaultCustomQueryCriteria(sum, myStatus)
+
+                    rpcOps.vaultQueryBy<TransactionState>(sumCriteria).otherResults.get(0)
+                }
+
+
+                if(totalSold is Double){
+                    return Response.ok(balancePojo(totalSold, totalSold)).build()
+                }else {
+                    return Response.ok(balancePojo(0.0, 0.0)).build()
+                }
+
             }
+
 
         }catch (ex: Exception){
             val msg = ex.message

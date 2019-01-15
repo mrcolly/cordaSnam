@@ -11,6 +11,7 @@ data class TransactionPojo(
         val externalId: String = "",
         val data: Instant = Instant.now(),
         val energia: Double = 0.0,
+        val totalPrice: Double = 0.0,
         val pricePerUnit: Double = 0.0,
         val idProposal: String = ""
         )

@@ -19,6 +19,7 @@ data class TransactionState(
         val data: Instant,
         val energia: Double,
         val pricePerUnit: Double,
+        val totalPrice: Double,
         val idProposal: String,
         override val linearId: UniqueIdentifier = UniqueIdentifier()): LinearState, QueryableState {
 
@@ -33,7 +34,7 @@ data class TransactionState(
                     this.data,
                     this.energia,
                     this.pricePerUnit,
-                    this.energia * this.pricePerUnit,
+                    this.totalPrice,
                     this.idProposal,
                     this.linearId.id
             )
