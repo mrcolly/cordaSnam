@@ -8,6 +8,7 @@ import com.snam.contract.TransactionsContract
 import com.snam.contract.TransactionsContract.Companion.TRANSACTION_CONTRACT_ID
 import com.snam.state.ProposalState
 import com.snam.state.TransactionState
+import net.corda.core.contracts.Amount
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.contracts.requireThat

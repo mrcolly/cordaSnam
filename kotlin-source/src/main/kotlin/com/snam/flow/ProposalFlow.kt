@@ -13,6 +13,7 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import java.util.*
+import khttp.get
 
 
 object ProposalFlow {
@@ -97,6 +98,10 @@ object ProposalFlow {
 
             val fullySignedTx = subFlow(CollectSignaturesFlow(partSignedTx, setOf(snamFlow, counterpartFlow), GATHERING_SIGS.childProgressTracker()))
 
+
+            //DEBUG
+            //logger.info(get("http://httpbin.org/ip").jsonObject.getString("origin"))
+
             // Stage 5.
             progressTracker.currentStep = FINALISING_TRANSACTION
             // Notarise and record the transaction in both parties' vaults.
@@ -167,8 +172,6 @@ object ProposalFlow {
                         .addInputState(stateAndRef)
                         .addCommand(txCommand)
 
-
-                logger.info("3")
                 progressTracker.currentStep = VERIFYING_TRANSACTION
                 // Verify that the transaction is valid.
                 txBuilder.verify(serviceHub)

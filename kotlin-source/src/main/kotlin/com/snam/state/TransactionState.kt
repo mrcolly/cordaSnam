@@ -33,6 +33,7 @@ data class TransactionState(
                     this.data,
                     this.energia,
                     this.pricePerUnit,
+                    this.energia * this.pricePerUnit,
                     this.idProposal,
                     this.linearId.id
             )

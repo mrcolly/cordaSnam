@@ -1,5 +1,6 @@
 package com.snam.schema
 
+import net.corda.core.contracts.Amount
 import net.corda.core.schemas.MappedSchema
 import net.corda.core.schemas.PersistentState
 import java.time.Instant
@@ -37,6 +38,9 @@ object TransactionSchemaV1 : MappedSchema(
             @Column(name = "pricePerUnit")
             var pricePerUnit: Double,
 
+            @Column(name = "totalPrice")
+            var totalPrice: Double,
+
             @Column(name = "idProposal")
             var idProposal: String,
 
@@ -46,6 +50,6 @@ object TransactionSchemaV1 : MappedSchema(
     ) : PersistentState() {
         // Default constructor required by hibernate.
         //constructor(): this("", "", "", , UUID.randomUUID())
-        constructor() : this("","","",   Instant.now(), 0.0 , 0.0,  "", UUID.randomUUID())
+        constructor() : this("","","",   Instant.now(), 0.0 , 0.0, 0.0,  "", UUID.randomUUID())
     }
 }

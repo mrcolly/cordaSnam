@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd build/nodes
+cd /root/cordaSnam/kotlin-source/build/nodes
 cd Notary
 nohup java -jar corda.jar &
 sleep 2

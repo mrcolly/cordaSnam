@@ -112,6 +112,50 @@ class TransactionApi(private val rpcOps: CordaRPCOps) {
     }
 
 
+    @GET
+    @Path("getAggregateValues")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getAggregateValues(@DefaultValue("unconsumed") @QueryParam("status") status: String): Response {
+
+        try{
+
+            var myStatus = Vault.StateStatus.UNCONSUMED
+
+            when(status){
+                "consumed" -> myStatus = Vault.StateStatus.CONSUMED
+                "all" -> myStatus = Vault.StateStatus.ALL
+            }
+
+            var criteriaV : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
+            var criteriaA : QueryCriteria = QueryCriteria.VaultQueryCriteria(myStatus)
+
+            val results = builder {
+                val sellerMe = TransactionSchemaV1.PersistentTransaction::sellerName.equal(myLegalName.toString())
+                val sellerCriteria = QueryCriteria.VaultCustomQueryCriteria(sellerMe, myStatus)
+                criteriaV = criteriaV.and(sellerCriteria)
+
+                val sum = TransactionSchemaV1.PersistentTransaction::totalPrice.sum()
+                val sumCriteria = QueryCriteria.VaultCustomQueryCriteria(sum, myStatus)
+                criteriaV = criteriaV.and(sumCriteria)
+
+                val buyerMe = TransactionSchemaV1.PersistentTransaction::buyerName.equal(myLegalName.toString())
+                val buyerCriteria = QueryCriteria.VaultCustomQueryCriteria(buyerMe, myStatus)
+                criteriaV = criteriaV.and(buyerCriteria)
+
+                val result = rpcOps.vaultQueryBy<TransactionState>(criteriaV.and(criteriaA))
+                return Response.ok(result).build()
+            }
+
+        }catch (ex: Exception){
+            val msg = ex.message
+            logger.error(ex.message, ex)
+            val resp = ResponsePojo("ERROR", msg!!)
+            return Response.status(BAD_REQUEST).entity(resp).build()
+        }
+
+    }
+
+
     @POST
     @Path("insert")
     @Consumes(MediaType.APPLICATION_JSON)
