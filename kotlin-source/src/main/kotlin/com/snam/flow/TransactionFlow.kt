@@ -205,7 +205,8 @@ object TransactionFlow {
             val proposalStateRef = proposalStates.get(0)
             val proposalState = proposalStateRef.state.data
 
-            if(proposalState.type == 'V'){
+            //if(proposalState.type == 'V'){
+            if(proposalState.type == 'A'){
                 if(!ProposalFlow.checkBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, proposalState.energia)){
                     throw FlowException("not enough MWH balance")
                 }
@@ -278,8 +279,12 @@ object TransactionFlow {
             progressTracker.currentStep = FINALISING_TRANSACTION
             // Notarise and record the transaction in both parties' vaults.
 
-            if(proposalState.type == 'V'){
+            //if(proposalState.type == 'V'){
+            if(proposalState.type == 'A'){
                 ProposalFlow.updateBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, -proposalState.energia)
+                ProposalFlow.updateBalance(proposalState.issuer.name.organisation, proposalState.energia)
+            } else if (proposalState.type == 'V'){
+                ProposalFlow.updateBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, proposalState.energia)
             }
 
             return subFlow(FinalityFlow(fullySignedTx, FINALISING_TRANSACTION.childProgressTracker()))

@@ -60,7 +60,8 @@ object ProposalFlow {
             // Obtain a reference to the notary we want to use.
             val notary = serviceHub.networkMapCache.notaryIdentities[0]
 
-            if(properties.type == 'A'){
+            //if(properties.type == 'A'){
+            if(properties.type == 'V'){
                 if(!checkBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, properties.energia)){
                     throw FlowException("not enough MWH balance")
                 }
@@ -113,7 +114,8 @@ object ProposalFlow {
             progressTracker.currentStep = FINALISING_TRANSACTION
             // Notarise and record the transaction in both parties' vaults.
 
-            if(properties.type == 'A'){
+            //if(properties.type == 'A'){
+            if(properties.type == 'V'){
                 updateBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, -proposalState.energia)
             }
 
@@ -209,7 +211,8 @@ object ProposalFlow {
                 // Notarise and record the transaction in both parties' vaults.
                 subFlow(FinalityFlow(fullySignedTx, FINALISING_TRANSACTION.childProgressTracker()))
                 logger.info("stop scheduled end for "+ proposalState.linearId.id.toString())
-                if(proposalState.type == 'A') {
+                //if(proposalState.type == 'A') {
+                if(proposalState.type == 'V') {
                     updateBalance(serviceHub.myInfo.legalIdentities.first().name.organisation, proposalState.energia)
                 }
             }
@@ -234,7 +237,7 @@ object ProposalFlow {
     fun checkBalance(name : String, qta: Double): Boolean{
         try{
 
-            var balance = get("http://52.36.65.252:21008/getBalance/"+name.toLowerCase(), timeout=3.0).jsonObject.getDouble("balance")
+            var balance = get("http://192.168.2.4:21008/getBalance/"+name.toLowerCase(), timeout=3.0).jsonObject.getDouble("balance")
             //println(name+" -> "+balance)
             if(qta <= balance){
                 return true
@@ -250,7 +253,7 @@ object ProposalFlow {
         //name.toLowerCase()
         try{
             val payload = mapOf("name" to name.toLowerCase(), "balance" to qta)
-            val r = post("http://52.36.65.252:21008/postResetBalance", data=payload, timeout = 3.0)
+            val r = post("http://192.168.2.4:21008/postResetBalance", data=payload, timeout = 3.0)
             //println(r.text)
         }catch (e: Exception){
 
